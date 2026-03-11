@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding: 20px; }
+        .controls { background: #e0e0e0; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        
+        .chord-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 600px; margin: 0 auto; }
+        .chord-card { border: 2px solid #333; padding: 10px; background: white; border-radius: 8px; transition: 0.2s; }
+        .active-chord { border: 4px solid #ff4500; background: #fff0e0; transform: scale(1.05); }
+        
+        /* Ensures fretboard lines stay perfectly aligned */
+        .fretboard { font-family: 'Courier New', monospace; font-size: 18px; line-height: 1.2; white-space: pre; display: inline-block; text-align: left; }
+    </style>
+</head>
+<body>
+
+<h2>4-Beat Ukulele Trainer</h2>
+<div class="controls">
+    <button onclick="randomizeProgression()">Generate New Progression</button>
+    <button onclick="toggleStart()">Start / Stop</button>
+    <br><br>
+    <label>Tempo (BPM): <input type="range" id="bpm" min="40" max="180" value="80"> <span id="bpmVal">80</span></label>
+    <div id="beat-display" style="margin-top:15px; font-weight:bold;">Press Start</div>
+</div>
+
+<div class="chord-container" id="display-order">
+    </div>
+
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let isRunning = false;
+    let sequence = ["C Major", "Am", "F Major", "G7"];
+    
+    const chordData = {
+        "C Major": "G C E A\n| | | |\n| | | |\n| | | |\n| | |(3)",
+        "Am": "G C E A\n| | | |\n| | | |\n| | | |\n| | |(2)",
+        "F Major": "G C E A\n| | | |\n| | | |\n(2)| | |\n| |(1)|",
+        "G7": "G C E A\n| | | |\n| |(1)|\n(2)|(3)|\n| | | |"
+    };
+
+    function randomizeProgression() {
+        sequence = [...sequence].sort(() => Math.random() - 0.5);
+        renderCards();
+    }
+
+    function renderCards() {
+        const container = document.getElementById('display-order');
+        container.innerHTML = sequence.map(name => `
+            <div class="chord-card" id="card-${name.split(' ')[0]}">
+                <strong>${name}</strong>
+                <div class="fretboard">${chordData[name]}</div>
+            </div>
+        `).join('');
+    }
+
+    // Initialize UI
+    renderCards();
+    document.getElementById('bpm').oninput = (e) => document.getElementById('bpmVal').innerText = e.target.value;
+
+    async function toggleStart() {
+        isRunning = !isRunning;
+        if (!isRunning) return;
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        
+        while (isRunning) {
+            for (let name of sequence) {
+                if (!isRunning) break;
+                document.querySelectorAll('.chord-card').forEach(c => c.classList.remove('active-chord'));
+                document.getElementById("card-" + name.split(' ')[0]).classList.add('active-chord');
+                
+                for (let beat = 1; beat <= 4; beat++) {
+                    if (!isRunning) break;
+                    document.getElementById('beat-display').innerText = `${name} | Beat ${beat}`;
+                    if (beat === 1) playChordMidi(name);
+                    await new Promise(r => setTimeout(r, 60000 / document.getElementById('bpm').value));
+                }
+            }
+        }
+    }
+
+    function playChordMidi(name) {
+        const freqs = {"C Major": [261.63, 329.63, 392.00, 523.25], "Am": [220, 261.63, 329.63, 440], "F Major": [174.61, 261.63, 349.23, 436.04], "G7": [196, 246.94, 293.66, 392]};
+        freqs[name].forEach(f => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.2);
+        });
+    }
+</script>
+</body>
+</html>
