@@ -106,22 +106,22 @@
         ex1: {
             desc: "<b>Ex 1:</b> An 8kg grey ball at 3 m/s and a 5kg white ball at -7 m/s collide. The grey ball bounces back at -2 m/s. What is the velocity of the white ball?",
             math: "<b>Step-by-Step Algebra:</b><br>\\(m_1v_{1i} + m_2v_{2i} = m_1v_{1f} + m_2v_{2f}\\) <br> \\((8)(3) + (5)(-7) = (8)(-2) + (5)(v_{2f})\\) <br> \\(24 - 35 = -16 + 5v_{2f}\\) <br> \\(-11 = -16 + 5v_{2f} \\rightarrow 5 = 5v_{2f}\\) <br> \\(v_{2f} = 1\\text{ m/s}\\)",
-            data: { m1: 8, v1i: 3, v1f: -2, m2: 5, v2i: -7, v2f: "v_{2f}", scale: 12 }
+            data: { m1: 8, v1i: 3, m2: 5, v2i: -7, v1f: -2, v2f: "v_{2f}", ansV2f: 1, scale: 12 }
         },
         ex2: {
-            desc: "<b>Ex 2:</b> A 4kg bowling ball moving at 5 m/s strikes a stationary 0.625kg pin. The ball continues at 4.5 m/s. What is the velocity of the pin?",
-            math: "<b>Step-by-Step Algebra:</b><br>\\(m_1v_{1i} + m_2v_{2i} = m_1v_{1f} + m_2v_{2f}\\) <br> \\((4)(5) + (0.625)(0) = (4)(4.5) + (0.625)(v_{2f})\\) <br> \\(20 = 18 + 0.625v_{2f}\\) <br> \\(2 = 0.625v_{2f} \\rightarrow v_{2f} = 3.2\\text{ m/s}\\)",
-            data: { m1: 4, v1i: 5, v1f: 4.5, m2: 0.625, v2i: 0, v2f: "v_{2f}", scale: 15 }
+            desc: "<b>Ex 2:</b> A 4kg bowling ball heads towards a stationary pin at 5 m/s. After being struck the pin travels to the right at 3.2 m/s, and the bowling ball slows to 4.5 m/s. What is the mass of the pin?",
+            math: "<b>Step-by-Step Algebra:</b><br>\\(m_1v_{1i} + m_2v_{2i} = m_1v_{1f} + m_2v_{2f}\\) <br> \\((4)(5) + (m_2)(0) = (4)(4.5) + (m_2)(3.2)\\) <br> \\(20 = 18 + 3.2m_2\\) <br> \\(2 = 3.2m_2 \\rightarrow m_2 = 0.625\\text{ kg}\\)",
+            data: { m1: 4, v1i: 5, m2: "m_2", v2i: 0, v1f: 4.5, v2f: 3.2, ansM2: 0.625, scale: 15 }
         },
         ex3: {
             desc: "<b>Ex 3:</b> A 500kg car moving at 7.5 m/s couples to a stationary 600kg car. What is the final combined velocity?",
             math: "<b>Step-by-Step Algebra:</b><br>\\(m_1v_{1i} + m_2v_{2i} = (m_1 + m_2)v_{f}\\) <br> \\((500)(7.5) + (600)(0) = (1100)(v_{f})\\) <br> \\(3750 = 1100v_{f} \\rightarrow v_{f} = 3.41\\text{ m/s}\\)",
-            data: { m1: 500, v1i: 7.5, v1f: "v_f", m2: 600, v2i: 0, v2f: "v_f", scale: 1.5 }
+            data: { m1: 500, v1i: 7.5, m2: 600, v2i: 0, v1f: "v_f", v2f: "v_f", ansV1f: 3.41, ansV2f: 3.41, scale: 1.5 }
         },
         ex4: {
             desc: "<b>Ex 4:</b> A 500kg cannon fires a 10kg ball at 30 m/s. Both start at rest. What is the recoil velocity of the cannon?",
-    		math: "<b>Step-by-Step Algebra:</b><br>\\(m_1v_{1i} + m_2v_{2i} = m_1v_{1f} + m_2v_{2f}\\) <br> \\((500)(0) + (10)(0) = (500)(v_{1f}) + (10)(30)\\) <br> \\(0 = 500v_{1f} + 300\\) <br> \\(-300 = 500v_{1f} \\rightarrow v_{1f} = -0.6\\text{ m/s}\\)",
-            data: { m1: 500, v1i: 0, v1f: "v_{1f}", m2: 10, v2i: 0, v2f: 30, scale: 1.5 }
+            math: "<b>Step-by-Step Algebra:</b><br>\\(m_1v_{1i} + m_2v_{2i} = m_1v_{1f} + m_2v_{2f}\\) <br> \\((500)(0) + (10)(0) = (500)(v_{1f}) + (10)(30)\\) <br> \\(0 = 500v_{1f} + 300\\) <br> \\(-300 = 500v_{1f} \\rightarrow v_{1f} = -0.6\\text{ m/s}\\)",
+            data: { m1: 500, v1i: 0, m2: 10, v2i: 0, v1f: "v_{1f}", v2f: 30, ansV1f: -0.6, scale: 1.5 }
         }
     };
 
@@ -131,52 +131,60 @@
 
     function updateTableDisplay(type, showResults = false) {
         const d = scenarios[type].data;
-        const pi1 = d.m1 * d.v1i, pi2 = d.m2 * d.v2i, piT = pi1 + pi2;
         
-        let val_v1f = (typeof d.v1f === 'number') ? d.v1f : 0;
-        let val_v2f = (typeof d.v2f === 'number') ? d.v2f : 0;
+        // Resolve numerical values for calculation
+        const numM1 = (typeof d.m1 === 'number') ? d.m1 : (d.ansM1 || 0);
+        const numM2 = (typeof d.m2 === 'number') ? d.m2 : (d.ansM2 || 0);
+        const numV1f = (typeof d.v1f === 'number') ? d.v1f : (d.ansV1f || 0);
+        const numV2f = (typeof d.v2f === 'number') ? d.v2f : (d.ansV2f || 0);
+        
+        const pi1 = numM1 * d.v1i, pi2 = numM2 * d.v2i, piT = pi1 + pi2;
 
-        if(showResults) {
-            if(type=='ex1') val_v2f = 1; if(type=='ex2') val_v2f = 3.2; 
-            if(type=='ex3') { val_v1f = 3.41; val_v2f = 3.41; } 
-            if(type=='ex4') val_v1f = -0.6;
-            algebraBox.style.display = "block";
-        } else {
-            algebraBox.style.display = "none";
-        }
+        if(showResults) algebraBox.style.display = "block";
+        else algebraBox.style.display = "none";
 
-        function formatCell(val, template) {
+        function formatCell(template, resolvedVal) {
             if (typeof template === 'number') return template.toString();
-            if (showResults) return `\\(${template} = ${val.toFixed(2)}\\)`;
-            return `\\(${template}\\)`;
+            return showResults ? `\\(${template} = ${resolvedVal}\\)` : `\\(${template}\\)`;
         }
 
-        function formatMom(mass, template, val) {
-            if (typeof template === 'number') return (mass * template).toFixed(1);
-            if (showResults) return `\\(${mass} \\cdot ${template} = ${(mass * val).toFixed(1)}\\)`;
-            return `\\(${mass} \\cdot ${template}\\)`;
+        function formatMom(m_temp, m_val, v_temp, v_val) {
+            const isMVar = typeof m_temp !== 'number';
+            const isVVar = typeof v_temp !== 'number';
+            if (!isMVar && !isVVar) return (m_val * v_val).toFixed(1);
+            
+            const momVal = (m_val * v_val).toFixed(1);
+            const mDisp = isMVar ? m_temp : m_temp;
+            const vDisp = isVVar ? v_temp : v_temp;
+            
+            return showResults ? `\\(${mDisp} \\cdot ${vDisp} = ${momVal}\\)` : `\\(${mDisp} \\cdot ${vDisp}\\)`;
         }
 
         tableBody.innerHTML = `
             <tr>
-                <td>Obj 1</td><td>${d.m1}</td><td>${d.v1i}</td><td>${(d.m1 * d.v1i).toFixed(1)}</td>
-                <td>${d.m1}</td>
-                <td class="${typeof d.v1f !== 'number'?'variable':''}">${formatCell(val_v1f, d.v1f)}</td>
-                <td>${formatMom(d.m1, d.v1f, val_v1f)}</td>
+                <td>Obj 1</td>
+                <td class="${typeof d.m1 !== 'number'?'variable':''}">${formatCell(d.m1, numM1)}</td>
+                <td>${d.v1i}</td>
+                <td>${formatMom(d.m1, numM1, d.v1i, d.v1i)}</td>
+                <td class="${typeof d.m1 !== 'number'?'variable':''}">${formatCell(d.m1, numM1)}</td>
+                <td class="${typeof d.v1f !== 'number'?'variable':''}">${formatCell(d.v1f, numV1f)}</td>
+                <td>${formatMom(d.m1, numM1, d.v1f, numV1f)}</td>
             </tr>
             <tr>
-                <td>Obj 2</td><td>${d.m2}</td><td>${d.v2i}</td><td>${(d.m2 * d.v2i).toFixed(1)}</td>
-                <td>${d.m2}</td>
-                <td class="${typeof d.v2f !== 'number'?'variable':''}">${formatCell(val_v2f, d.v2f)}</td>
-                <td>${formatMom(d.m2, d.v2f, val_v2f)}</td>
+                <td>Obj 2</td>
+                <td class="${typeof d.m2 !== 'number'?'variable':''}">${formatCell(d.m2, numM2)}</td>
+                <td>${d.v2i}</td>
+                <td>${formatMom(d.m2, numM2, d.v2i, d.v2i)}</td>
+                <td class="${typeof d.m2 !== 'number'?'variable':''}">${formatCell(d.m2, numM2)}</td>
+                <td class="${typeof d.v2f !== 'number'?'variable':''}">${formatCell(d.v2f, numV2f)}</td>
+                <td>${formatMom(d.m2, numM2, d.v2f, numV2f)}</td>
             </tr>
         `;
+        
         document.getElementById('total-pi').innerText = piT.toFixed(1);
         document.getElementById('total-pf').innerHTML = showResults ? `\\(p_{total} = ${piT.toFixed(1)}\\)` : "\\(p_{total}\\)";
         
-        if(window.MathJax) {
-            MathJax.typeset([table, algebraBox]);
-        }
+        if(window.MathJax) MathJax.typeset([table, algebraBox]);
     }
 
     class Obj {
@@ -197,10 +205,10 @@
 
     function setup(type) {
         objs = []; collision = false; mode = type;
-        answerToggle.checked = false; // Force hide answers on setup
+        answerToggle.checked = false;
         descBox.innerHTML = scenarios[type].desc;
         algebraBox.innerHTML = scenarios[type].math;
-        updateTableDisplay(type, false); // Initialize with false
+        updateTableDisplay(type, false);
 
         const s = scenarios[type].data.scale;
         if (type == 'ex1') { 
